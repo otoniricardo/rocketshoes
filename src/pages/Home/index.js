@@ -1,7 +1,6 @@
 /* eslint-disable react/state-in-constructor */
 import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { MdAddShoppingCart } from 'react-icons/md';
 import { formatPrice } from '../../util/format';
 import api from '../../services/api';
@@ -10,8 +9,17 @@ import * as CartActions from '../../store/modules/cart/actions';
 
 import { ProductList } from './styles';
 
-function Home({ amount, addToCartRequest }) {
+export default function Home() {
   const [products, setProducts] = useState([]);
+
+  const amount = useSelector(state =>
+    state.cart.reduce((acc, product) => {
+      acc[product.id] = product.amount;
+      return acc;
+    }, {})
+  );
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     async function loadProducts() {
@@ -28,7 +36,7 @@ function Home({ amount, addToCartRequest }) {
   }, []);
 
   function handleAddProduct(id) {
-    addToCartRequest(id);
+    dispatch(CartActions.addToCartRequest(id));
   }
 
   return (
@@ -50,16 +58,3 @@ function Home({ amount, addToCartRequest }) {
     </ProductList>
   );
 }
-// }
-
-const mapDispatchToProps = dispatch =>
-  bindActionCreators(CartActions, dispatch);
-
-const mapStateToProps = state => ({
-  amount: state.cart.reduce((acc, product) => {
-    acc[product.id] = product.amount;
-    return acc;
-  }, {}),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
